@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+/*! Copyright (C) 2012 by Andreas F. Bobak. All Rights Reserved. !*/
+
+var fs = require("fs");
+var program = require("commander");
+var npmrep = require("../lib/npmrep");
+
+var pkg = JSON.parse(fs.readFileSync(__dirname + "/../package.json", "utf8"));
+
+program.
+	version(pkg.version).
+	usage(
+		"[options] [<source>] <destination> <pkg>\n\n" +
+		"    source       Fully qualified URL of the source NPM registry,\n" + 
+		"                 defaults to https://registry.npmjs.org/\n" +
+		"    destination  Fully qualified URL of the destination NPM registry\n" +
+		"    pkg>         Package name and version to replicate"
+	).
+	option("-u, --user <name>", "Username for authentication").
+	option("-p, --pw [password]", "Password for authentication").
+	parse(process.argv);
+
+function usage() {
+  process.stdout.write(program.helpInformation());
+	process.exit(1);
+}
+
+if (program.args.length < 2) {
+	usage();
+}
+
+if (program.user && !program.pw) {
+	program.password("Password: ", "*", function (pw) {
+		program.pw = pw;
+		process.stdin.destroy();
+		execute();
+	});
+
+} else {
+	execute();
+}
+
+function execute() {
+
+	var args = program.args;	
+	var config = {};
+	if (args.length === 2) {
+		config.source = "https://registry.npmjs.org/";
+	} else {
+		config.source = args.shift();
+	}
+
+	config.destination = args.shift();
+	var pkg = args.shift();
+
+	if (program.user) {
+		config.auth = program.user + ":" + program.pw;
+		delete program.user;
+		delete program.pw;
+	}
+
+	console.log("Replicating " + pkg + " from " + config.source + " to " + config.destination);
+
+	npmrep.replicate(config, pkg).when(function (error, response) {
+		if (error) {
+			console.error("Failed to replicate " + pkg + ":\n", error);
+			process.exit(1);
+		}
+		console.log("Replication Finished");
+	});
+}
