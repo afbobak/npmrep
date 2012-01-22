@@ -4,7 +4,7 @@
 	"version": "0.1.0",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/afbobak/npmrep.git"
+		"url": "git://github.com/afbobak/npmrep.git"
 	},
 	"author": "Andreas F. Bobak <bobak@abstrakt.ch>",
 	"bin": {
@@ -15,6 +15,7 @@
 		"test": "scripts/run-tests"
 	},
 	"dependencies": {
+		"colors": "0.6.x",
 		"commander": "0.5.x",
 		"futures": "2.3.x",
 		"request": "2.1.x",
